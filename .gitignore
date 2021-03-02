@@ -129,5 +129,7 @@ dmypy.json
 .pyre/
 
 dataset/
+spark-3.0.2-bin-hadoop2.7/
 py4j-0.10.9-src.zip/
 python/
+.idea/
