@@ -22,13 +22,13 @@ def init_spark():
 
 def main():
 
-    # spark, sc = init_spark()
-    # nums = sc.parallelize([1, 2, 3, 4])
-    # print(nums.map(lambda x: x * x).collect())
+    #spark, sc = init_spark()
+    #nums = sc.parallelize([1, 2, 3, 4])
+    #print(nums.map(lambda x: x * x).collect())
 
     spark, sc = init_spark()
-    dataset = sc.textFile(name='dataset/Appliances_5.json')
-    # dataset = sc.textFile(name='C:\\Users\\Alessia\\PycharmProjects\\BigData2\\dataset\\Appliances_5.json')
+    #dataset = sc.textFile(name='dataset/Appliances_5.json')
+    dataset = sc.textFile(name='C:\\Users\\Alessia\\PycharmProjects\\BigData\\dataset\\Appliances_5.json')
     print(dataset.map(lambda x: json.loads(x)).map(lambda x: (clean_text(x['reviewText']), x['overall'])).collect())
 
 
@@ -54,6 +54,6 @@ def clean_text(text):
 
 
 if __name__ == '__main__':
-
+    #nltk.download("all")
     main()
 
