@@ -4,10 +4,11 @@ import nltk
 import sys
 import re
 import os
-
+import numpy
 from pyspark import SparkConf
 from pyspark import SparkContext
 from pyspark.sql import SparkSession
+from pyspark.mllib.feature import Word2Vec
 
 from nltk.stem import PorterStemmer
 from nltk.stem import WordNetLemmatizer
@@ -116,6 +117,7 @@ CONTRACTION_MAP = {
         "what'll've": "what will have",
         "what're": "what are",
         "what's": "what is",
+        "whats": "what is",
         "what've": "what have",
         "when's": "when is",
         "when've": "when have",
@@ -163,31 +165,38 @@ def main():
     spark, sc = init_spark()
     #dataset = sc.textFile(name='dataset/Appliances_5.json')
     dataset = sc.textFile(name='C:\\Users\\Alessia\\PycharmProjects\\BigData\\dataset\\Appliances_5.json')
-    dataset = sc.textFile(name='C:\\Users\\Alessia\\PycharmProjects\\BigData\\dataset\\prova.json')
+    #dataset = sc.textFile(name='C:\\Users\\Alessia\\PycharmProjects\\BigData\\dataset\\prova.json')
+    reviews = dataset.map(lambda x: json.loads(x)).map(lambda x: clean_text(x['reviewText']))
+    #print(dataset.map(lambda x: json.loads(x)).map(lambda x: (clean_text(x['reviewText']), x['overall'])).collect())
+    #print(reviews.collect())
+    word2vec = Word2Vec().setMinCount(10).setVectorSize(100)
+    model = word2vec.fit(reviews)
+    synonyms = model.findSynonyms('well', 10)
 
-    print(dataset.map(lambda x: json.loads(x)).map(lambda x: (clean_text(x['reviewText']), x['overall'])).collect())
-
+    for word, cosine_distance in synonyms:
+        print("{}: {}".format(word, cosine_distance))
 
 def clean_text(text):
     text = re.sub(r'\w+:\/{2}[\d\w-]+(\.[\d\w-]+)*(?:(?:\/[^\s/]*))*', '', text)
     text = text.lower()
 
     text = expand_contractions(text)
-    print(text)
+    #print(text)
     text = re.sub(r'[' + string.digits + ']+', '', text)
     text = re.sub(r'[' + string.punctuation + ']', ' ', text)
     text = re.sub(r'[' + string.whitespace + ']+', ' ', text)
     text = word_tokenize(text)
-
+    #review text vuoto--> eliminare
     #parallelizzare anche parole?
     lemmatizer = WordNetLemmatizer()
 
-    from nltk.corpus import stopwords
-    #print(stopwords.words('english'))
-    #text = [word for word in text if word not in stopwords.words('english')]
+    from nltk.corpus import stopwords, wordnet
+
+    text = [word for word in text if word not in stopwords.words('english')]
     text = [lemmatizer.lemmatize(word, pos='v') for word in text]
     text = [lemmatizer.lemmatize(word, pos='n') for word in text]
-
+    text = [lemmatizer.lemmatize(word, pos='a') for word in text]
+    text = [lemmatizer.lemmatize(word, pos='r') for word in text]
     return text
 
 
@@ -197,7 +206,7 @@ def expand_contractions(text, map=CONTRACTION_MAP):
 
     def get_match(contraction):
         match = contraction.group(0)
-        print(contraction)
+        #print(contraction)
 
         #first_char = match[0]
         if map.get(match):
