@@ -12,16 +12,19 @@ from pyspark.mllib.feature import Word2Vec
 
 from nltk.stem import PorterStemmer
 from nltk.stem import WordNetLemmatizer
+from nltk.tokenize import TweetTokenizer
 from nltk.tokenize import word_tokenize
 
 
 CONTRACTION_MAP = {
+
         "ain't": "is not",
         "aren't": "are not",
         "arent": "are not",
-        "can't": "cannot",
-        "cant": "cannot",
-        "can't've": "cannot have",
+        "btw": "by the way",
+        "can't": "can not",
+        "cant": "can not",
+        "can't've": "can not have",
         "'cause": "because",
         "cause": "because",
         "could've": "could have",
@@ -45,16 +48,10 @@ CONTRACTION_MAP = {
         "how'd'y": "how do you",
         "how'll": "how will",
         "how's": "how is",
-        "I'd": "I would",
-        "I'd've": "I would have",
-        "I'll": "I will",
-        "I'll've": "I will have",
-        "I'm": "I am",
-        "I've": "I have",
         "i'd": "i would",
         "i'd've": "i would have",
-        "i'll've": "i will have",
         "i'll": "i will",
+        "i'll've": "i will have",
         "i'm": "i am",
         "i've": "i have",
         "isn't": "is not",
@@ -147,7 +144,9 @@ CONTRACTION_MAP = {
         "you'll've": "you will have",
         "you're": "you are",
         "you've": "you have"
+
 }
+
 
 def init_spark():
 
@@ -163,25 +162,31 @@ def main():
     #print(nums.map(lambda x: x * x).collect())
 
     spark, sc = init_spark()
-    #dataset = sc.textFile(name='dataset/Appliances_5.json')
-    dataset = sc.textFile(name='C:\\Users\\Alessia\\PycharmProjects\\BigData\\dataset\\Appliances_5.json')
-    #dataset = sc.textFile(name='C:\\Users\\Alessia\\PycharmProjects\\BigData\\dataset\\prova.json')
+    dataset = sc.textFile(name='dataset/prova.json')
+    # dataset = sc.textFile(name='C:\\Users\\Alessia\\PycharmProjects\\BigData\\dataset\\Appliances_5.json')
+    # dataset = sc.textFile(name='C:\\Users\\Alessia\\PycharmProjects\\BigData\\dataset\\prova.json')
     reviews = dataset.map(lambda x: json.loads(x)).map(lambda x: clean_text(x['reviewText']))
+    print(reviews.collect())
     #print(dataset.map(lambda x: json.loads(x)).map(lambda x: (clean_text(x['reviewText']), x['overall'])).collect())
     #print(reviews.collect())
-    word2vec = Word2Vec().setMinCount(10).setVectorSize(100)
-    model = word2vec.fit(reviews)
-    synonyms = model.findSynonyms('well', 10)
+    #Word2vec = Word2Vec().setMinCount(10).setVectorSize(100)
+    #model = word2vec.fit(reviews)
+    #synonyms = model.findSynonyms('well', 10)
 
-    for word, cosine_distance in synonyms:
-        print("{}: {}".format(word, cosine_distance))
+    #for word, cosine_distance in synonyms:
+        #print("{}: {}".format(word, cosine_distance))
+
 
 def clean_text(text):
+
     text = re.sub(r'\w+:\/{2}[\d\w-]+(\.[\d\w-]+)*(?:(?:\/[^\s/]*))*', '', text)
     text = text.lower()
+    tmp = word_tokenize(text)
+    tknz = TweetTokenizer()
+    text = tknz.tokenize(text)
 
-    text = expand_contractions(text)
-    #print(text)
+    text = ' '.join([replace_contraction(word=word) for word in text])
+
     text = re.sub(r'[' + string.digits + ']+', '', text)
     text = re.sub(r'[' + string.punctuation + ']', ' ', text)
     text = re.sub(r'[' + string.whitespace + ']+', ' ', text)
@@ -193,6 +198,7 @@ def clean_text(text):
     from nltk.corpus import stopwords, wordnet
 
     text = [word for word in text if word not in stopwords.words('english')]
+
     text = [lemmatizer.lemmatize(word, pos='v') for word in text]
     text = [lemmatizer.lemmatize(word, pos='n') for word in text]
     text = [lemmatizer.lemmatize(word, pos='a') for word in text]
@@ -200,26 +206,15 @@ def clean_text(text):
     return text
 
 
-# function to expand contractions
-def expand_contractions(text, map=CONTRACTION_MAP):
-    pattern = re.compile('({})'.format('|'.join(map.keys())), flags=re.IGNORECASE)
+def replace_contraction(word):
 
-    def get_match(contraction):
-        match = contraction.group(0)
-        #print(contraction)
+    ret = word
 
-        #first_char = match[0]
-        if map.get(match):
-            expanded = map.get(match)
-        else:
-            expanded = map.get(match.lower())
-        #expanded = first_char + expanded[1:]
-        return expanded
+    if word in CONTRACTION_MAP.keys():
 
-    new_text = pattern.sub(get_match, text)
-    #new_text = re.sub("'", "", new_text)
-    return new_text
+        ret = CONTRACTION_MAP[word]
 
+    return ret
 
 
 if __name__ == '__main__':
