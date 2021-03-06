@@ -172,7 +172,6 @@ def main():
     #Word2vec = Word2Vec().setMinCount(10).setVectorSize(100)
     #model = word2vec.fit(reviews)
     #synonyms = model.findSynonyms('well', 10)
-
     #for word, cosine_distance in synonyms:
         #print("{}: {}".format(word, cosine_distance))
 
