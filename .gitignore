@@ -109,7 +109,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
-venv
+
 # Spyder project settings
 .spyderproject
 .spyproject
@@ -128,8 +128,5 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-dataset/
-spark-3.0.2-bin-hadoop2.7/
-py4j-0.10.9-src.zip/
-python/
+# Pycharm .idea
 .idea/
