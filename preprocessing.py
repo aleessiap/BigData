@@ -5,6 +5,8 @@ import sys
 import re
 import os
 import numpy
+import matplotlib.pyplot as plt
+
 from pyspark import SparkConf
 from pyspark import SparkContext
 from pyspark.sql import SparkSession
@@ -216,8 +218,25 @@ def replace_contraction(word):
 def read_dataset(sc, dataset):
     data = sc.textFile(dataset)
 
-    (train, test) = data.randomSplit([0.9, 0.1])
+    (train, test) = data.randomSplit([0.5, 0.5])
 
     return train.map(lambda x: json.loads(x)) \
         .filter(lambda x: "reviewText" in x and "overall" in x) \
         .map(lambda x: preprocess(x["reviewText"]))
+
+
+def getOriginalSentiment(sc, dataset):
+    data = sc.textFile(dataset)
+    rdd = data.map(lambda x: json.loads(x))
+
+    sentiment = rdd.map(lambda y: map_overall_to_sentiment(y["overall"]))
+    return sentiment;
+
+
+def map_overall_to_sentiment(points):
+    if points <= 2:
+        return -1
+    elif points == 3:
+        return 0
+    else:
+        return 1

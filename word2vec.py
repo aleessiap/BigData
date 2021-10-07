@@ -22,18 +22,20 @@ def getWord2Vec(sc):
     listAbc = sc.parallelize(list(abc.sents()))
     listBrown = sc.parallelize(list(brown.sents()))
     listWeb = sc.parallelize(list(webtext.sents()))
-    listGut = sc.parallelize(list(gutenberg.sents()))
+    # listGut = sc.parallelize(list(gutenberg.sents()))
     listProd1 = listProd1.map(lambda x: ' '.join(x)).map(lambda x: preprocess(x))
     listProd2 = listProd2.map(lambda x: ' '.join(x)).map(lambda x: preprocess(x))
     listSent = listSent.map(lambda x: ' '.join(x)).map(lambda x: preprocess(x))
 
     listMovie = listMovie.map(lambda x: ' '.join(x)).map(lambda x: preprocess(x))
     listAbc = listAbc.map(lambda x: ' '.join(x)).map(lambda x: preprocess(x))
-    listGut = listGut.map(lambda x: ' '.join(x)).map(lambda x: preprocess(x))
+    # listGut = listGut.map(lambda x: ' '.join(x)).map(lambda x: preprocess(x))
     listBrown = listBrown.map(lambda x: ' '.join(x)).map(lambda x: preprocess(x))
     listWeb = listWeb.map(lambda x: ' '.join(x)).map(lambda x: preprocess(x))
-    data = listBrown.union(listWeb).union(listGut).union(listAbc).union(listMovie).union(listProd1).union(listProd2)\
-        .union(listSent)
+    data = listSent.union(listAbc).union(listMovie).union(listProd1).union(listProd2).union(listWeb).union(listBrown)\
+
+    #data = listBrown.union(listWeb).union(listGut).union(listAbc).union(listMovie).union(listProd1).union(listProd2)\
+        #.union(listSent)
     return data
 
 
@@ -91,5 +93,6 @@ def preprocess(data):
     # print(text)
 
     return text
+
 
 
