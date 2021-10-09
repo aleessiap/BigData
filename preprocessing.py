@@ -5,7 +5,6 @@ import sys
 import re
 import os
 import numpy
-import matplotlib.pyplot as plt
 
 from pyspark import SparkConf
 from pyspark import SparkContext

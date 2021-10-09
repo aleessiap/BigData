@@ -1,6 +1,7 @@
 from pyspark.ml.feature import HashingTF, Tokenizer, IDF, StopWordsRemover, RegexTokenizer, Bucketizer, StringIndexer
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import *
+from pyspark.sql.types import StringType
 from pyspark.ml import Pipeline
 import string
 import json
@@ -69,6 +70,11 @@ def train(dataset):
     print('precision: ' + str(evaluator_precision.evaluate(lr_predictions_w2v)))
 
 
+def repl_contr(list):
+
+    return ' '.join([replace_contraction(word) for word in list])
+
+
 def preprocess(data):
     print(type(data))
     text = re.sub(r'\w+:\/{2}[\d\w-]+(\.[\d\w-]+)*(?:(?:\/[^\s/]*))*', '', data)
@@ -127,7 +133,7 @@ def preprocess(data):
 if __name__ == '__main__':
     spark = SparkSession.builder.getOrCreate()
 
-    dataset = spark.read.json('C:\\Users\\Alessia\\PycharmProjects\\BigData\\dataset\\test.json')
+    dataset = spark.read.json('C:\\Users\\frcon\\Desktop\\BigData\\dataset\\test.json')
     # add an index column
     #df = dataset.withColumn('index', f.monotonically_increasing_id())
 
@@ -135,8 +141,19 @@ if __name__ == '__main__':
     #df1 = df.sort('index').limit(50000)
     df1 = dataset.dropna(subset=('reviewText', 'overall')).select('*')
     df1 = df1.withColumn('reviewText', lower(df1.reviewText))
-    tknz = TweetTokenizer()
-    print(df1.select(f.collect_list('reviewText')).first()[0])
+    regexTokenizer = RegexTokenizer(inputCol="reviewText", outputCol="words_token", pattern="\\W")
+    wordsData = regexTokenizer.transform(df1)
+
+
+    print(wordsData.select(f.collect_list('words_token')).first())
+
+    print(wordsData)
+    rudf = f.udf(repl_contr, StringType())
+    print(wordsData.withColumn('reviewText', rudf('words_token')))
+
+    regexTokenizer = RegexTokenizer(inputCol="reviewText", outputCol="words_token", pattern="\\W")
+    wordsData = regexTokenizer.transform(df1)
+
     #df1 = df1.withColumn('reviewText', ' '.join([replace_contraction(word=word) for word in words ]))
 
 
