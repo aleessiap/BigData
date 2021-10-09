@@ -167,11 +167,14 @@ def preprocess(data):
     tknz = TweetTokenizer()
     text = tknz.tokenize(text)
 
+
     # replace contractions
     text = ' '.join([replace_contraction(word=word) for word in text])
 
     # remove digits
     text = re.sub(r'[' + string.digits + ']+', '', text)
+
+    text = re.sub(r'\b\w{1,3}\b', '', text)
 
     # remove puntaction
     text = re.sub(r'[' + string.punctuation + ']', ' ', text)
@@ -215,14 +218,14 @@ def replace_contraction(word):
     return ret
 
 
-def read_dataset(sc, dataset):
+def read_dataset(sc, dataset, trainSplit, testSplit):
     data = sc.textFile(dataset)
 
-    (train, test) = data.randomSplit([0.5, 0.5])
+    (train, test) = data.randomSplit([trainSplit, testSplit])
 
     return train.map(lambda x: json.loads(x)) \
         .filter(lambda x: "reviewText" in x and "overall" in x) \
-        .map(lambda x: preprocess(x["reviewText"]))
+        .map(lambda x: preprocess(x["reviewText"])), test
 
 
 def getOriginalSentiment(sc, dataset):
@@ -230,7 +233,7 @@ def getOriginalSentiment(sc, dataset):
     rdd = data.map(lambda x: json.loads(x))
 
     sentiment = rdd.map(lambda y: map_overall_to_sentiment(y["overall"]))
-    return sentiment;
+    return sentiment
 
 
 def map_overall_to_sentiment(points):
