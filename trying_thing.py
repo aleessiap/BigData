@@ -149,10 +149,12 @@ if __name__ == '__main__':
 
     print(wordsData)
     rudf = f.udf(repl_contr, StringType())
-    print(wordsData.withColumn('reviewText', rudf('words_token')))
+    wordsData = wordsData.withColumn('reviewText', rudf('words_token'))
 
-    regexTokenizer = RegexTokenizer(inputCol="reviewText", outputCol="words_token", pattern="\\W")
-    wordsData = regexTokenizer.transform(df1)
+    regexTokenizer = RegexTokenizer(inputCol="reviewText", outputCol="words_token2", pattern="\\W")
+    wordsData = regexTokenizer.transform(wordsData)
+
+    print(wordsData.select(f.collect_list('words_token2')).first()[0])
 
     #df1 = df1.withColumn('reviewText', ' '.join([replace_contraction(word=word) for word in words ]))
 

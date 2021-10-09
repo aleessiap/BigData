@@ -211,8 +211,15 @@ def preprocess(data):
 def replace_contraction(word):
     ret = word
 
+    print()
+    print(word)
+    print("====")
     if word in CONTRACTION_MAP.keys():
         ret = CONTRACTION_MAP[word]
+        print(word)
+        print(ret)
+    print("====")
+    print()
 
     return ret
 
