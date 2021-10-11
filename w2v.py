@@ -3,9 +3,7 @@ from pyspark.sql import SparkSession
 from pyspark.sql.functions import *
 from pyspark.sql.types import StringType, ArrayType, NumericType, IntegerType
 from pyspark.ml import Pipeline
-from sparknlp.base import *
-from sparknlp.annotator import *
-import sparknlp
+
 import string
 import json
 import nltk
@@ -99,9 +97,8 @@ def trainW2v(wordsData, trainPerc, numIstances):
 
 
 if __name__ == '__main__':
-    #spark = SparkSession.builder.getOrCreate()
-    #sc = spark.sparkContext
-    sparknlp = sparknlp.start()
+    spark = SparkSession.builder.getOrCreate()
+    sc = spark.sparkContext
 
     pp = pprint.PrettyPrinter(indent=4)
 
