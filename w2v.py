@@ -26,6 +26,7 @@ from trying_thing import *
 import pyspark.sql.functions as f
 from preprocessing import replace_contraction, stop_words, getOriginalSentiment, map_overall_to_sentiment
 
+
 def preprocessing(df, numInstances):
     df1 = df.sort('index').limit(numInstances)
 
@@ -63,6 +64,7 @@ def preprocessing(df, numInstances):
 
     return wordsData
 
+
 def trainW2v(wordsData, trainPerc, numIstances):
     testPerc = 1 - trainPerc
     word2vec = Word2Vec(vectorSize=300, minCount=1, inputCol='tokens_without_stop', outputCol='word2vec_features')
@@ -85,7 +87,7 @@ def trainW2v(wordsData, trainPerc, numIstances):
     lr_Model_w2v = lr_w2v.fit(trainingData_w2v)
     lr_predictions_w2v = lr_Model_w2v.transform(testData_w2v)
     name = 'LogisticRegression-Kindle-'+str(trainPerc)+'-'+str(testPerc)+'-'+str(numIstances)+'3classi.txt'
-    f = open('C:\\Users\\Alessia\\PyCharmProjects\\BigData\\models\\'+name, "a")
+    f = open('.\models\\'+name, "a")
     f.write('f1: ' + str(evaluator_f1.evaluate(lr_predictions_w2v)))
     f.write('\n')
     f.write('acc: ' + str(evaluator_acc.evaluate(lr_predictions_w2v)))
@@ -102,11 +104,8 @@ if __name__ == '__main__':
 
     pp = pprint.PrettyPrinter(indent=4)
 
-    dataset = sparknlp.read.json('C:\\Users\\Alessia\\PyCharmProjects\\BigData\\dataset\\Kindle.json')
-    # add an index column
+    dataset = spark.read.json('.\dataset\\Kindle.json')
     df = dataset.withColumn('index', f.monotonically_increasing_id())
-
-    # sort ascending and take first 100 rows for df1
 
     wordsData = preprocessing(df, 65000)
     trainW2v(wordsData, 0.9, 65000)
