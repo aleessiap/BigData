@@ -32,7 +32,9 @@ CONTRACTION_MAP = {
     "couldn't": "could not",
     "couldn't've": "could not have",
     "didn't": "did not",
+    "didnt": "did not",
     "doesn't": "does not",
+    "doesnt": "does not",
     "don't": "do not",
     "dont": "do not",
     "hadn't": "had not",
@@ -68,6 +70,7 @@ CONTRACTION_MAP = {
     "mightn't've": "might not have",
     "must've": "must have",
     "mustn't": "must not",
+    "mustnt": "must not",
     "mustn't've": "must not have",
     "needn't": "need not",
     "needn't've": "need not have",
@@ -82,6 +85,7 @@ CONTRACTION_MAP = {
     "she'll": "she will",
     "she'll've": "she will have",
     "she's": "she is",
+    "shes": "she is",
     "should've": "should have",
     "shouldn't": "should not",
     "shouldn't've": "should not have",
@@ -98,11 +102,13 @@ CONTRACTION_MAP = {
     "they'd": "they would",
     "they'd've": "they would have",
     "they'll": "they will",
+    "theyll": "they will",
     "they'll've": "they will have",
     "they're": "they are",
     "they've": "they have",
     "to've": "to have",
     "wasn't": "was not",
+    "wasnt": "was not",
     "we'd": "we would",
     "we'd've": "we would have",
     "we'll": "we will",
@@ -117,21 +123,28 @@ CONTRACTION_MAP = {
     "whats": "what is",
     "what've": "what have",
     "when's": "when is",
+    "whens": "when is",
     "when've": "when have",
     "where'd": "where did",
     "where's": "where is",
+    "wheres": "where is",
     "where've": "where have",
     "who'll": "who will",
     "who'll've": "who will have",
     "who's": "who is",
+    "whos": "who is",
     "who've": "who have",
     "why's": "why is",
     "why've": "why have",
     "will've": "will have",
+    "willve": "will have",
     "won't": "will not",
+    "wont": "will not",
     "won't've": "will not have",
     "would've": "would have",
+    "wouldve": "would have",
     "wouldn't": "would not",
+    "wouldnt": "would not",
     "wouldn't've": "would not have",
     "y'all": "you all",
     "y'all'd": "you all would",
@@ -147,8 +160,8 @@ CONTRACTION_MAP = {
 
 }
 
-stop_words = ['to', 'and', 'or', 'be', 'in', 'of', 'at', 'a', 'an', 'the', 'i', 'we', 'you', 'they', 'he', 'she', 'it',
-              'that', 'this', 'those', 'these', 'by', 'my', 'your', 'our', 'his', 'her', 'its','their']
+stop_words = ['to', 'and', 'or', 'be', 'have', 'in', 'of', 'at', 'a', 'an', 'the', 'i', 'we', 'you', 'they', 'he', 'she', 'it',
+              'that', 'this', 'those', 'these', 'by', 'my', 'your', 'our', 'his', 'her', 'its', 'their', 'me']
 
 
 def preprocess(data):
@@ -211,15 +224,8 @@ def preprocess(data):
 def replace_contraction(word):
     ret = word
 
-    print()
-    print(word)
-    print("====")
     if word in CONTRACTION_MAP.keys():
         ret = CONTRACTION_MAP[word]
-        print(word)
-        print(ret)
-    print("====")
-    print()
 
     return ret
 
@@ -243,9 +249,10 @@ def getOriginalSentiment(sc, dataset):
 
 
 def map_overall_to_sentiment(points):
-    if points <= 2:
+    print(points)
+    if int(points) <= 2:
         return -1
-    elif points == 3:
+    elif int(points) == 3:
         return 0
     else:
         return 1
