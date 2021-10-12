@@ -68,7 +68,7 @@ def preprocessing(df, numInstances):
 def trainW2v(wordsData, trainPerc, numIstances):
     testPerc = 1 - trainPerc
     word2vec = Word2Vec(vectorSize=300, minCount=1, inputCol='tokens_without_stop', outputCol='word2vec_features')
-    wordsData = word2vec.fit(wordsData).transform(wordsData)
+    wordsData = word2vec.fit(wordsData).transform(wordsData).repartition(500)
     wordsData = wordsData.drop('reviewText', 'tokens', 'reviews_notcontracted', 'reviews_without_digits',
                                'reviews_without_puntaction', 'reviews_without_white', 'lemmas','tokens_without_stop')
 
@@ -86,16 +86,16 @@ def trainW2v(wordsData, trainPerc, numIstances):
     # lr_mmlib = LogisticRegressionModel(features)
     lr_Model_w2v = lr_w2v.fit(trainingData_w2v)
     lr_predictions_w2v = lr_Model_w2v.transform(testData_w2v)
-    name = 'LogisticRegression-Kindle-'+str(trainPerc)+'-'+str(testPerc)+'-'+str(numIstances)+'3classi.txt'
-    f = open('.\models\\'+name, "a")
-    f.write('f1: ' + str(evaluator_f1.evaluate(lr_predictions_w2v)))
-    f.write('\n')
-    f.write('acc: ' + str(evaluator_acc.evaluate(lr_predictions_w2v)))
-    f.write('\n')
-    f.write('recall: ' + str(evaluator_recall.evaluate(lr_predictions_w2v)))
-    f.write('\n')
-    f.write('precision: ' + str(evaluator_precision.evaluate(lr_predictions_w2v)))
-    f.close()
+    #name = 'LogisticRegression-Kindle-'+str(trainPerc)+'-'+str(testPerc)+'-'+str(numIstances)+'3classi.txt'
+    #f = open('.\models\\'+name, "a")
+    print('f1: ' + str(evaluator_f1.evaluate(lr_predictions_w2v)))
+    #f.write('\n')
+    print('acc: ' + str(evaluator_acc.evaluate(lr_predictions_w2v)))
+    #('\n')
+    print('recall: ' + str(evaluator_recall.evaluate(lr_predictions_w2v)))
+    #('\n')
+    print('precision: ' + str(evaluator_precision.evaluate(lr_predictions_w2v)))
+    #f.close()
 
 
 if __name__ == '__main__':
