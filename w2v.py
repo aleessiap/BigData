@@ -1,32 +1,7 @@
-from pyspark.ml.feature import HashingTF, Tokenizer, IDF, StopWordsRemover, RegexTokenizer, Bucketizer, StringIndexer
-from pyspark.sql import SparkSession
-from pyspark.sql.functions import *
-from pyspark.sql.types import StringType, ArrayType, NumericType, IntegerType
-from pyspark.ml import Pipeline
 import time
-import string
-import json
-import nltk
-import sys
-import re
-from nltk.stem import WordNetLemmatizer
-from nltk.tokenize import TweetTokenizer
-from nltk.tokenize import word_tokenize
-from nltk import pos_tag, word_tokenize
 
-from pyspark.ml.classification import LinearSVC, LogisticRegression
-from pyspark.mllib.classification import LogisticRegressionModel
-from pyspark.ml.evaluation import MulticlassClassificationEvaluator
-from pyspark.sql import functions as F
-from pyspark.ml.tuning import CrossValidator, ParamGridBuilder
-from pyspark.ml.feature import Word2Vec
-from pyspark.ml.feature import NGram
-import pprint
-import sys
 from trying_thing import *
 import pyspark.sql.functions as f
-from preprocessing import replace_contraction, stop_words, getOriginalSentiment, map_overall_to_sentiment
-
 
 def preprocessing(df, numInstances, numRepartitions):
 
@@ -64,6 +39,9 @@ def preprocessing(df, numInstances, numRepartitions):
     remove_stop_udf = f.udf(remove_stop, ArrayType(StringType()))
     wordsData = wordsData.withColumn('tokens_without_stop', remove_stop_udf('lemmas'))
 
+    wordsData = wordsData.drop('reviewText', 'tokens', 'reviews_notcontracted', 'reviews_without_digits',
+                               'reviews_without_puntaction', 'reviews_without_white', 'lemmas')
+
     return wordsData
 
 
@@ -73,18 +51,28 @@ def trainW2v(wordsData, trainPerc, n, file):
     word2vec = Word2Vec(vectorSize=300, minCount=1, inputCol='tokens_without_stop', outputCol='word2vec_features')
 
     if n == -1:
+        start = time.time_ns()
         wordsData = word2vec.fit(wordsData).transform(wordsData)
     else:
-        wordsData = word2vec.fit(wordsData).transform(wordsData).repartition(n)
+        wordsData = wordsData.repartition(n)
+        start = time.time_ns()
+        wordsData = word2vec.fit(wordsData).transform(wordsData)
 
-    wordsData = wordsData.drop('reviewText', 'tokens', 'reviews_notcontracted', 'reviews_without_digits',
-                               'reviews_without_puntaction', 'reviews_without_white', 'lemmas', 'tokens_without_stop')
+    end = time.time_ns()
+    print("Embedding time in s: " + str((end - start)/1000000000))
+    wordsData = wordsData.drop('tokens_without_stop')
 
+    start = time.time_ns()
     (trainingData_w2v, testData_w2v) = wordsData.randomSplit([trainPerc, testPerc], seed=100)
-    print("Training Dataset Count: " + str(trainingData_w2v.count()))
-    print("Test Dataset Count: " + str(testData_w2v.count()))
-    file.write("Training Dataset Count: " + str(trainingData_w2v.count()) + '\n')
-    file.write("Test Dataset Count: " + str(testData_w2v.count()) + '\n')
+    end = time.time_ns()
+    print("Splitting train - test: " + str((end - start) / 1000000000))
+    train_count = str(trainingData_w2v.count())
+    test_count = str(testData_w2v.count())
+    print("Training Dataset Count: " + train_count)
+    print("Test Dataset Count: " + test_count)
+    file.write("Training Dataset Count: " + train_count + '\n')
+    file.write("Test Dataset Count: " + test_count + '\n')
+
     evaluator_f1 = MulticlassClassificationEvaluator(predictionCol="prediction", metricName='f1')
     evaluator_acc = MulticlassClassificationEvaluator(predictionCol="prediction", metricName='accuracy')
     evaluator_recall = MulticlassClassificationEvaluator(predictionCol="prediction", metricName='weightedRecall')
@@ -92,17 +80,29 @@ def trainW2v(wordsData, trainPerc, n, file):
 
     lr_w2v = LogisticRegression(featuresCol='word2vec_features').setFamily('multinomial')
 
+    start = time.time_ns()
     lr_Model_w2v = lr_w2v.fit(trainingData_w2v)
     lr_predictions_w2v = lr_Model_w2v.transform(testData_w2v)
+    end = time.time_ns()
+    print("Classification time in s: " + str((end - start)/1000000000))
 
-    print('f1: ' + str(evaluator_f1.evaluate(lr_predictions_w2v)))
-    file.write('f1: ' + str(evaluator_f1.evaluate(lr_predictions_w2v)) + '\n')
-    print('acc: ' + str(evaluator_acc.evaluate(lr_predictions_w2v)))
-    file.write('acc: ' + str(evaluator_acc.evaluate(lr_predictions_w2v)) + '\n')
-    print('recall: ' + str(evaluator_recall.evaluate(lr_predictions_w2v)))
-    file.write('recall: ' + str(evaluator_recall.evaluate(lr_predictions_w2v)) + '\n')
-    print('precision: ' + str(evaluator_precision.evaluate(lr_predictions_w2v)))
-    file.write('precision: ' + str(evaluator_precision.evaluate(lr_predictions_w2v)) + '\n')
+    start = time.time_ns()
+    f1 = str(evaluator_f1.evaluate(lr_predictions_w2v))
+    acc = str(evaluator_acc.evaluate(lr_predictions_w2v))
+    recall = str(evaluator_recall.evaluate(lr_predictions_w2v))
+    precision = str(evaluator_precision.evaluate(lr_predictions_w2v))
+
+    end = time.time_ns()
+    print("Evaluating time in s: " + str((end - start)/1000000000))
+
+    print('f1: ' + f1)
+    file.write('f1: ' + f1 + '\n')
+    print('acc: ' + acc)
+    file.write('acc: ' + acc + '\n')
+    print('recall: ' + recall)
+    file.write('recall: ' + recall + '\n')
+    print('precision: ' + precision)
+    file.write('precision: ' + precision + '\n')
 
 
 if __name__ == '__main__':
@@ -111,8 +111,8 @@ if __name__ == '__main__':
 
     pp = pprint.PrettyPrinter(indent=4)
     time_start = time.time_ns()
-    dataset = spark.read.json('/home/ubuntu/BigData/dataset/Kindle.json')
-    # dataset = spark.read.json('./dataset/Kindle.json')
+    # dataset = spark.read.json('/home/ubuntu/BigData/dataset/Kindle.json')
+    dataset = spark.read.json('./dataset/Kindle.json')
 
     df = dataset.withColumn('index', f.monotonically_increasing_id())
 
@@ -135,15 +135,18 @@ if __name__ == '__main__':
     print('repartitions: ' + str(numRepartitions))
     print('reviews: ' + str(numReviews))
 
-    name = 'LogisticRegression-Kindle-' + str(trainPerc) + '-' + str(numReviews) + '-3classi.txt'
-    file = open('/home/ubuntu/BigData/experiments/' + name, "a")
-    # file = open('./experiments/' + name, "a")
+    name = 'LogisticRegression-Kindle-' + str(trainPerc) + '-' + str(numReviews) + '-' + str(numRepartitions) + '-3classi.txt'
+    # file = open('/home/ubuntu/BigData/experiments/' + name, "a")
+    file = open('./experiments/' + name, "a")
+    start = time.time_ns()
     wordsData = preprocessing(df, numReviews, numRepartitions)
+    end = time.time_ns()
+    print("Preprocessing time in s: " + str((end - start)/1000000000))
     trainW2v(wordsData, trainPerc, numRepartitions, file)
     time_end = time.time_ns()
     time = time_end - time_start
-    print("Time in ms: ")
-    print(time / 1000000)
-    file.write("Time:")
-    file.write(str(time))
+    print("Total time in ms: ")
+    print(time / 1000000000)
+    file.write("Total time in ms:")
+    file.write(str(time / 1000000000))
     file.close()
