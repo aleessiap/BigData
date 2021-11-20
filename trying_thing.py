@@ -219,7 +219,7 @@ if __name__ == '__main__':
 
     # sort ascending and take first 100 rows for df1
 
-    for n in [40000]:
+    for n in [4000]:
         for tr in [0.9]:
            wordsData = preprocessing(df, n)
            # train(wordsData, tr, n)
