@@ -19,6 +19,7 @@ from pyspark.ml.feature import NGram
 import pprint
 import sys
 import pyspark.sql.functions as f
+from pyspark.sql.session import SparkSession
 
 CONTRACTION_MAP = {
 
