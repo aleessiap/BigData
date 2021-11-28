@@ -8,7 +8,7 @@ from nltk.stem import WordNetLemmatizer
 from nltk.tokenize import TweetTokenizer
 from nltk.tokenize import word_tokenize
 from nltk import pos_tag, word_tokenize
-
+from pyspark.sql.types import StringType, ArrayType, NumericType, IntegerType
 from pyspark.ml.classification import LinearSVC, LogisticRegression
 from pyspark.mllib.classification import LogisticRegressionModel
 from pyspark.ml.evaluation import MulticlassClassificationEvaluator
@@ -244,7 +244,7 @@ def preprocessing(df, numInstances, numRepartitions):
 
     df1 = df1.select('label', (df1['reviewText']).alias('reviewText'))
 
-    df1 = df1.withColumn('reviewText', lower(df1.reviewText))
+    df1 = df1.withColumn('reviewText', f.lower(df1.reviewText))
     tok_udf = f.udf(tokenize, ArrayType(StringType()))
 
     wordsData = df1.withColumn('tokens', tok_udf('reviewText'))
@@ -375,8 +375,9 @@ if __name__ == '__main__':
     trainW2v(wordsData, trainPerc, numRepartitions, file)
     time_end = time.time_ns()
     time = time_end - time_start
-    print("Total time in ms: ")
-    print(time / 1000000000)
-    file.write("Total time in ms:")
-    file.write(str(time / 1000000000))
+    print("Total time in s: ")
+    time_final = time/1000000000
+    print(time_final)
+    file.write("Total time in s:")
+    file.write(str(time_final))
     file.close()
