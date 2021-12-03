@@ -341,7 +341,7 @@ if __name__ == '__main__':
 
     pp = pprint.PrettyPrinter(indent=4)
     time_start = time.time_ns()
-    dataset = spark.read.json('/home/ubuntu/BigData/Kindle.json')
+    dataset = spark.read.json('/home/ubuntu/BigData/Kindle_Store_5.json')
 
     #dataset = spark.read.json('./dataset/Kindle.json')
 
