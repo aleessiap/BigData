@@ -1,21 +1,15 @@
 import time
 import string
-import json
-import nltk
-import sys
+
 import re
 from nltk.stem import WordNetLemmatizer
 from nltk.tokenize import TweetTokenizer
-from nltk.tokenize import word_tokenize
 from nltk import pos_tag, word_tokenize
-from pyspark.sql.types import StringType, ArrayType, NumericType, IntegerType
-from pyspark.ml.classification import LinearSVC, LogisticRegression
-from pyspark.mllib.classification import LogisticRegressionModel
+from pyspark.sql.types import StringType, ArrayType,  IntegerType
+from pyspark.ml.classification import LogisticRegression
 from pyspark.ml.evaluation import MulticlassClassificationEvaluator
-from pyspark.sql import functions as F
-from pyspark.ml.tuning import CrossValidator, ParamGridBuilder
+
 from pyspark.ml.feature import Word2Vec
-from pyspark.ml.feature import NGram
 import pprint
 import sys
 import pyspark.sql.functions as f
