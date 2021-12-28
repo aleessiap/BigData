@@ -15,6 +15,8 @@ import sys
 import pyspark.sql.functions as f
 from pyspark.sql.session import SparkSession
 
+from pyspark.sql.types import StringType, ArrayType, NumericType, IntegerType
+
 CONTRACTION_MAP = {
 
     "ain't": "is not",
@@ -333,9 +335,9 @@ if __name__ == '__main__':
 
     pp = pprint.PrettyPrinter(indent=4)
     time_start = time.time_ns()
-    #dataset = spark.read.json('/home/ubuntu/BigData/dataset/Kindle.json')
+    dataset = spark.read.json('/home/ubuntu/BigData/Kindle_Store_5.json')
 
-    dataset = spark.read.json('./dataset/Kindle.json')
+    #dataset = spark.read.json('./dataset/Kindle.json')
 
     df = dataset.withColumn('index', f.monotonically_increasing_id())
 
@@ -359,8 +361,8 @@ if __name__ == '__main__':
     print('reviews: ' + str(numReviews))
 
     name = 'LogisticRegression-Kindle-' + str(trainPerc) + '-' + str(numReviews) + '-3classi.txt'
-    #file = open('/home/ubuntu/BigData/experiments/' + name, "a")
-    file = open('./experiments/' + name, "a")
+    file = open('/home/ubuntu/BigData/experiments/' + name, "a")
+    #file = open('./experiments/' + name, "a")
 
     start = time.time_ns()
     wordsData = preprocessing(df, numReviews, numRepartitions)
