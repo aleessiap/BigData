@@ -353,16 +353,24 @@ def trainBert(wordsData, trainPerc, n, file):
         .toPandas()
 
     df_bert['result'] = df_bert.result.str[0].astype('int32')
-
-    file.write('f1: ' + str(f1_score(df_bert.label, df_bert.result, average='micro')))
-    file.write('\n')
     file.write('acc: ' + str(accuracy_score(df_bert.label, df_bert.result)))
+    file.write('\n')
+    file.write('\nMICRO\n')
+    file.write('f1: ' + str(f1_score(df_bert.label, df_bert.result, average='micro')))
     file.write('\n')
     file.write('recall: ' + str(recall_score(df_bert.label, df_bert.result, average='micro')))
     file.write('\n')
     file.write('precision: ' + str(precision_score(df_bert.label, df_bert.result, average='micro')))
     file.write('\n')
+    file.write('\nMACRO\n')
+    file.write('f1: ' + str(f1_score(df_bert.label, df_bert.result, average='macro',  zero_division=0)))
+    file.write('\n')
+    file.write('recall: ' + str(recall_score(df_bert.label, df_bert.result, average='macro',  zero_division=0)))
+    file.write('\n')
+    file.write('precision: ' + str(precision_score(df_bert.label, df_bert.result, average='macro',  zero_division=0)))
+    file.write('\n')
     file.write(classification_report(df_bert.label, df_bert.result,  zero_division=0))
+    file.write('\n')
 
 
 if __name__ == '__main__':
@@ -378,7 +386,7 @@ if __name__ == '__main__':
     df = dataset.withColumn('index', f.monotonically_increasing_id())
 
     numRepartitions = -1
-    numReviews = 1000
+    numReviews = 10000
     trainPerc = 0.9
     n = len(sys.argv)
 
